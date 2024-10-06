@@ -5,7 +5,7 @@ using namespace std;
 
 class Node {
 public:
-    long long int value; // Use long long int for 64-bit segment
+    long long int value;
     Node* next;
     Node(long long int value) : value(value), next(nullptr) {}
 };
@@ -15,9 +15,14 @@ public:
     Node* head;
     Node* tail;
 
+    // constructor
+
     NodeList() : head(nullptr), tail(nullptr) {}
 
+
+    // a function that inserts a node at the end of the list
     void insert(long long int value) {
+
         Node* newNode = new Node(value);
         if (head == nullptr) {
             head = newNode;
@@ -27,7 +32,7 @@ public:
             tail = newNode;
         }
     }
-
+    // print the whole list
     void print() {
         Node* current = head;
         while (current != nullptr) {
@@ -37,21 +42,6 @@ public:
         cout << endl;
     }
 
-    NodeList reverse() {
-        Node* prev = nullptr;
-        Node* current = head;
-        Node* next_node;
-
-        while (current != nullptr) {
-            next_node = current->next;
-            current->next = prev;
-            prev = current;
-            current = next_node;
-        }
-
-        head = prev;
-        return *this;
-    }
 
     // function for adding two node list numbers
     NodeList add(NodeList& other) {
@@ -85,6 +75,8 @@ public:
         Node* current2 = other.head;
         long long borrow = 0;
 
+
+
         while (current1 != nullptr || current2 != nullptr) {
             long long diff = (current1 ? current1->value : 0) - borrow;
             if (current2) {
@@ -103,6 +95,7 @@ public:
         return result;
     }
 
+    // padding the number by adding zeros so that the higher(more significant) number can be combined with the lower to make the whole product
     NodeList shift(int m) {
         NodeList result;
         for (int i = 0; i < m; i++) {
@@ -117,7 +110,7 @@ public:
     }
 
 
-
+// split the number into two parts
     void split(NodeList& list, NodeList& low, NodeList& high) {
         Node* slow = list.head;
         Node* fast = list.head;
@@ -134,8 +127,10 @@ public:
         high.head = slow;
     }
 
-    NodeList karatsuba(NodeList& other) {
-        // Base case: if either number is 1-digit, return simple multiplication
+
+    // multiplication of two nodes(two numbers)
+    NodeList karatsuba_Multiply(NodeList& other) {
+      // if there is just one node  then just do basic multiplication
         if (this->head->next == nullptr || other.head->next == nullptr) {
             long long product = this->head->value * other.head->value;
             NodeList result;
@@ -143,23 +138,24 @@ public:
             return result;
         }
 
-        // Split the numbers into halves
+        // Split the numbers into 2  halves
         NodeList X0, X1, Y0, Y1;
         split(*this, X0, X1);
         split(other, Y0, Y1);
 
-        NodeList tempX = X1.add(X0);  // Store the result of X1.add(X0)
+        // temporary nodes
+        NodeList tempX = X1.add(X0);
         NodeList tempY = Y1.add(Y0);
 
-        // Recursively compute the three products
-        NodeList Z2 = X1.karatsuba(Y1);
-        NodeList Z0 = X0.karatsuba(Y0);
-        NodeList Z1 = (X1.add(X0)).karatsuba(tempY).subtract(Z2).subtract(Z0);
-        NodeList tempZ = Z1.shift(1);  // Store the result of X1.add(X0)
+        // Use recursion to compute the 3 smaller products
+        NodeList Z2 = X1.karatsuba_Multiply(Y1);
+        NodeList Z0 = X0.karatsuba_Multiply(Y0);
+        NodeList Z1 = (X1.add(X0)).karatsuba_Multiply(tempY).subtract(Z2).subtract(Z0);
+        NodeList tempZ = Z1.shift(1);
 
 
 
-        // Combine the results: Z2 * B^2m + Z1 * B^m + Z0
+        // Combine the results to form the product
         return Z2.shift(2).add(tempZ).add(Z0);
     }
 
@@ -180,9 +176,9 @@ public:
             quotient.insert(currentQuotient); // Store the quotient
 
             // Update the remainder using the current quotient
-            remainderValue = combinedValue % divisorValue; // Remainder after division
+            remainderValue = combinedValue % divisorValue;
 
-            currentDividend = currentDividend->next; // Move to the next segment
+            currentDividend = currentDividend->next;
         }
 
         // Normalize the quotient if needed
@@ -191,7 +187,7 @@ public:
             quotient.insert(0); // Insert zero if there were no valid divisions
         }
 
-        return {quotient, remainderValue}; // Return the resulting quotient and the remainder
+        return {quotient, remainderValue};
     }
 
 
@@ -213,6 +209,7 @@ public:
         string result;
         Node* current = this->head;
         while (current!= nullptr) {
+          // appending to the string
             result += to_string(current->value);
             current = current->next;
         }
@@ -225,9 +222,9 @@ public:
         NodeList i = createNodeListFromString("2");
         NodeList iterator = createNodeListFromString("1");
 
-        while((i.karatsuba(i)).createStringFromNodeList().length() != this->createStringFromNodeList().length()) {
-            auto [qoutient , remainder] = this->Division(i);
 
+        while((i.karatsuba_Multiply(i)).createStringFromNodeList().length() != this->createStringFromNodeList().length()) { // this while loop checks if i^2 has length less than the length of the original number
+            auto [qoutient , remainder] = this->Division(i);
 
             if(remainder == 0) {
                 return false;
